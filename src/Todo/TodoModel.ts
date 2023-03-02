@@ -1,6 +1,4 @@
 import { State } from "./Status";
-import { CommonService } from "src/Common/CommonService";
-import { Inject, Injectable } from "@nestjs/common";
 export class Todo {
     id: number;
     name: string;

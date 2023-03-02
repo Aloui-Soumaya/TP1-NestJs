@@ -1,16 +1,23 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { TodoDTO } from 'src/TodoDTO';
+import { BadRequestException, Inject, Injectable, NotFoundException, Options } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TodoEntity } from 'src/Entity/Todo.entity';
+import { TodoAddDTO } from 'src/Todo/ModelDtoAjout';
+import { Like, Repository } from 'typeorm';
 import { TodoUpdate } from './ModelDtoUpdate';
+import { State } from "src/Status";
 import { Todo } from './TodoModel';
 
 @Injectable()
 export class TodoService {
+    constructor(@InjectRepository(TodoEntity)
+    private readonly todoRepo: Repository<TodoEntity>,
+    ) { }
     @Inject('UUID') uuid: () => number;
     private todos = [];
     getTodos(): Todo[] {
         return this.todos;
     }
-    addTodo(todo: TodoDTO): boolean {
+    addTodo(todo: TodoAddDTO): boolean {
         let newtodo = new Todo(todo.name, todo.description);
         newtodo.id = this.uuid();
         this.todos.push(newtodo);
@@ -36,6 +43,67 @@ export class TodoService {
         else {
             throw new NotFoundException('le todo avec cet id n existe pas')
         }
+    }
+    /* with database */
+    async postTodo(todo: TodoAddDTO): Promise<TodoEntity> {
+        return await this.todoRepo.save(todo)
+    }
+    async updateTodov2(id: number, body: TodoUpdate) {
+        const newTodo: TodoEntity = await this.todoRepo.preload({
+            id,
+            name: body.name,
+            description: body.description,
+            status: body.status,
+        });
+        console.log("*************************", newTodo);
+        if (!newTodo) throw new NotFoundException;
+        return await this.todoRepo.save(newTodo);
+    }
+    async deleteTodov2(id: string) {
+        return await this.todoRepo.delete(id);
+    }
+    async deleteTodov3(id: number) {
+        const todo = await this.todoRepo.findOneById(id);
+        console.log("todo:", todo);
+        if (!todo) {
+            throw new NotFoundException('not found');
+        }
+        return await this.todoRepo.softDelete(id);
+    }
+    async restoreTodo(id: number) {
+        return await this.todoRepo.restore(id);
+    }
+    async countByStatus() {
+        return "actif :" + await this.todoRepo.countBy({ status: State.actif }) +
+            " waiting : " + await this.todoRepo.countBy({ status: State.waiting }) +
+            "done :" + await this.todoRepo.countBy({ status: State.done })
+    }
+    async getTodov2() {
+        return await this.todoRepo.find();
+    }
+    async getTodobyparamv2(statusParam, data): Promise<TodoEntity[]> {
+        const qb = this.todoRepo.createQueryBuilder("todo");
+        qb.where("todo.name Like :data", { data: '%' + data + '%' })
+            .orWhere("todo.description Like :data", { data: '%' + data + '%' })
+            .andWhere("todo.status= :statusParam", { statusParam: statusParam });
+        if (!qb.getMany()) throw new NotFoundException();
+        return await qb.getMany();
+    }
+    async getTodobyparamv1(statusParam, data): Promise<TodoEntity[]> {
+        const qb = this.todoRepo.createQueryBuilder("todo");
+        qb.where("todo.name Like :data", { data: '%' + data + '%' })
+            .orWhere("todo.description Like :data", { data: '%' + data + '%' })
+            .orWhere("todo.status= :statusParam", { statusParam: statusParam });
+        if (!qb.getMany()) throw new NotFoundException();
+        return await qb.getMany();
+    }
+    async findByIDv2(id: number): Promise<TodoEntity> {
+        const todo = await this.todoRepo.findOne({ where: [{ id: id }] });
+        if (!todo) throw new BadRequestException("le todo n'existe pas");
+        return todo;
+    }
+    async getTodosPaginated(param): Promise<TodoEntity[]> {
+        return await this.todoRepo.find({ skip: (param.page - 1) * param.take, take: param.take });
     }
 
 }
