@@ -18,7 +18,7 @@ export class TodoService {
         return this.todos;
     }
     addTodo(todo: TodoAddDTO): boolean {
-        let newtodo = new Todo(todo.name, todo.description);
+        let newtodo = new Todo(todo.name, todo.description, "id");
         newtodo.id = this.uuid();
         this.todos.push(newtodo);
         return true;
@@ -45,15 +45,17 @@ export class TodoService {
         }
     }
     /* with database */
-    async postTodo(todo: TodoAddDTO): Promise<TodoEntity> {
-        return await this.todoRepo.save(todo)
+    async postTodo(todo: TodoAddDTO, userId: string): Promise<TodoEntity> {
+        let newtodo = new Todo(todo.name, todo.description, userId);
+        return await this.todoRepo.save(newtodo);
     }
-    async updateTodov2(id: number, body: TodoUpdate) {
+    async updateTodov2(id: number, body: TodoUpdate, userId: string) {
         const newTodo: TodoEntity = await this.todoRepo.preload({
             id,
             name: body.name,
             description: body.description,
             status: body.status,
+            userId
         });
         console.log("*************************", newTodo);
         if (!newTodo) throw new NotFoundException;

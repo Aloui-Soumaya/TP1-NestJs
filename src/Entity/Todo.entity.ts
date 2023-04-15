@@ -14,8 +14,10 @@ export class TodoEntity extends DateTime {
     @Column()
     description: string;
 
-    @Column({ type: 'enum', enum: State })
+    @Column({ type: 'enum', enum: State, default: State.waiting })
     status: State;
 
+    @Column()
+    userId: string;
 
 }

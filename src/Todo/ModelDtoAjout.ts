@@ -32,7 +32,6 @@ export class TodoAddDTO {
         }
     })
     description: string;
-    @IsIn([State.actif, State.done, State.waiting])
-    status: State;
+
 
 }

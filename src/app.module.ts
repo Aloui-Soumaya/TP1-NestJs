@@ -1,27 +1,32 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommonModule } from './Common/CommonModule';
-import { CustomController } from './Custom/CustomController';
-import { TodoController } from './Todo/TodoController';
 import { TodoModule } from './Todo/TodoModule';
-import { TodoService } from './Todo/TodoService';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthMiddleware } from './auth/auth.middleware';
+import { CvModule } from './cv/cv.module';
+import { SkillModule } from './skill/skill.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [TodoModule, CommonModule, TypeOrmModule.forRoot(
     {
-      type: 'postgres',
+      type: 'mysql',
       host: '127.0.0.1',
-      port: 5432,
-      username: 'postgres',
-      password: '166679',
+      port: 3306,
+      username: 'root',
+      password: '',
       database: 'tp2',
       autoLoadEntities: true,
       synchronize: true,
     }
-  )],
+  ), CvModule, SkillModule, UserModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AuthMiddleware],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes('v2/todo-controller');
+  }
+}

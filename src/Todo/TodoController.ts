@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Version } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Request, Post, Put, Query, Version } from '@nestjs/common';
 import { TodoEntity } from 'src/Entity/Todo.entity';
 import { TodoAddDTO } from 'src/Todo/ModelDtoAjout';
 import { TodoUpdate } from 'src/Todo/ModelDtoUpdate';
@@ -40,18 +40,27 @@ export class TodoController {
 
     @Post('/add')
     @Version('2')
-    postTodosV2(@Body() todo: TodoAddDTO): Promise<TodoEntity> {
-        return this.service.postTodo(todo);
+    postTodosV2(@Request() req, @Body() todo: TodoAddDTO)/*: Promise<TodoEntity>*/ {
+        console.debug("********", req.user)
+        return this.service.postTodo(todo, req.user.id);
     }
     @Put('/updatebyid/:id')
     @Version('2')
-    UpdateByIdTodosV2(@Param('id') id,
+    async UpdateByIdTodosV2(@Request() req, @Param('id') id,
         @Body() body: TodoUpdate) {
-        return this.service.updateTodov2(id, body);
+        const todo = await this.service.findByIDv2(id);
+        if (todo.userId !== req.user.id) {
+            throw new Error('Not authorized Your are not the user that created this todo');
+        }
+        return this.service.updateTodov2(id, body, req.user.id);
     }
     @Delete('/deletebyid/:id')
     @Version('2')
-    deleteByIdTodosv2(@Param('id') id) {
+    async deleteByIdTodosv2(@Request() req, @Param('id') id) {
+        const todo = await this.service.findByIDv2(id);
+        if (todo.userId !== req.user.id) {
+            throw new Error('Not authorized Your are not the user that created this todo');
+        }
         return this.service.deleteTodov2(id);
     }
     @Delete('/deletebyid/:id')

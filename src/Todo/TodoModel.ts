@@ -5,8 +5,10 @@ export class Todo {
     description: string;
     dateDeCreation: Date = new Date();
     status: State = State.waiting;
-    constructor(name: string, description: string) {
+    userId: string;
+    constructor(name: string, description: string, userId: string) {
         this.name = name;
         this.description = description;
+        this.userId = userId;
     }
 }
