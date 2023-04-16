@@ -1,5 +1,5 @@
 import { IsIn, IsOptional } from "class-validator";
-import { State } from "src/Status";
+import { State } from "./Status";
 
 export class ParamDto {
 

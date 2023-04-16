@@ -1,4 +1,4 @@
-import { State } from "src/Status";
+import { State } from "../Status";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { DateTime } from "./DateTime";
 

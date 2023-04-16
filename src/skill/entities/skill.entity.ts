@@ -1,12 +1,17 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Cv } from '../../cv/entities/cv.entity';
-@Entity()
-export class Skill {
+import { CvEntity } from "../../cv/entities/cv.entity";
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+
+@Entity('skill')
+export class SkillEntity {
     @PrimaryGeneratedColumn()
     id: number;
     @Column()
     designation: string;
-
-    @ManyToMany(() => Cv, (cv) => cv.skills)
-    cvs: Cv[];
+    @ManyToMany(() => CvEntity, { cascade: true })
+    @JoinTable({
+        name: 'cvs_skills',
+        joinColumn: { name: 'Skill', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'Cv', referencedColumnName: 'id' },
+    })
+    cvs: CvEntity[];
 }

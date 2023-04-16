@@ -1,16 +1,16 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CommonModule } from './Common/CommonModule';
 import { TodoModule } from './Todo/TodoModule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { CvModule } from './cv/cv.module';
 import { SkillModule } from './skill/skill.module';
 import { UserModule } from './user/user.module';
+import { CommonModule } from './Common/CommonModule';
 
 @Module({
-  imports: [TodoModule, CommonModule, TypeOrmModule.forRoot(
+  imports: [CommonModule, TodoModule, TypeOrmModule.forRoot(
     {
       type: 'mysql',
       host: '127.0.0.1',
